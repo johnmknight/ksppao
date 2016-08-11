@@ -1,0 +1,515 @@
+<html>
+<head>
+
+</head>
+<body>
+<script>
+
+    //for general status update (random interval) we'll say somethign like:
+	// This is Apollo Control at 1 hour 51 minutes.
+	// We're getting good telemetry data from Apollo 17 ...
+	// The vessel's status shows:
+	// 75% liquid fuel remaiing.
+	// 80% monopropellent
+	// 100% battery charge
+
+	// phrases
+	var tminus_pre 				= ["We are at T minus"," and counting"];
+	var pre_launch_babble		= ["Currenly the crew are peforming items on their pre-flight checklists.",
+								   "The vessel is fully fueled and all systems appear nominal for a launch",
+								   "The countdown is continuing with only scheduled holds planned.",
+								   "The weather at the Kerbal Space Center is clear and weather is green for launch."								   
+								  ];
+	var mission_elapsed_time 	= ["We are at ", " mission elapsed time"];
+	var this_is    				= ["This is Kerbal Control. ","Kerbal Control broadcasting from the Kerbal Space Center. ","Now for a mission update.","We are back live from the Kerbal Space Center with a mission update."];
+	var good_telemetry_from    	= ["We're getting good telemetry data from "];
+	var resource_levels	    	= ["Currenly we show the following for resource levels,  "];
+    
+	var voice_id				= 3; //default UK Female
+
+    var companyArray = [];
+	var adcompany = "";
+	var ads = 0;
+	var adNum = 0;
+	var adtext = "";
+	
+	
+	//status test data
+    var statusarray = [
+    "-0:0:2:4:34", 	//0:	met
+    "65",			//1:	liquid fuel percentage
+    "65",			//2:	liquid oxygen percentage
+	"98",			//3:	monopropellent percentage
+	"100",			//4:	electrical charge percentage
+	"Munar 2",		//5:	vessel/mission name
+	"2300"		    //6:    vessel orbital velocity in m/s
+];
+	 var targetstatusarray = [
+    "0:0:2:4:34", 	//0:	met
+    "1,000,000",	//1:	distance to target
+    "Kerbal X-a",			//2:	name of target
+	"probe",		//3:	type of target
+	"",				//4:	RESERVED
+	"Munar 2",		//5:	vessel/mission name
+	
+	
+
+];
+
+
+	function readTextFile(file)
+	{
+		var rawFile = new XMLHttpRequest();
+		rawFile.open("GET", file, false);
+		rawFile.onreadystatechange = function ()
+		{
+			if(rawFile.readyState === 4)
+			{
+				if(rawFile.status === 200 || rawFile.status == 0)
+				{
+					var allText = rawFile.responseText;
+					
+					alert(allText);
+					return (allText);
+				}
+			}
+		}
+		rawFile.send(null);
+	}
+
+	
+    		
+			
+			function speakitad(text){
+				msg = new SpeechSynthesisUtterance(text);
+				console.log("now speaking: "+ text);				
+				msg.voice = window.speechSynthesis.getVoices()[voice_id];
+				msg.lang = 'en-US';
+				msg.onend = function () {
+					//hide image after ad
+					document.getElementById("adpic").style.visibility ="hidden";					
+					document.getElementById("videoPlayer").style="-webkit-filter:blur(0px);";		
+				};
+				
+				window.speechSynthesis.speak(msg);
+			}
+			
+			function speakit(text){
+				msg = new SpeechSynthesisUtterance(text);
+				console.log("now speaking: "+ text);					
+				msg.voice = window.speechSynthesis.getVoices()[voice_id];
+				msg.lang = 'en-US';
+				
+				window.speechSynthesis.speak(msg);
+			}
+			
+			function say2partphrase(array, value){
+				msg = new SpeechSynthesisUtterance(array[0] + value + array[1]);
+				msg.voice = window.speechSynthesis.getVoices()[voice_id];
+				msg.lang = 'en-US';
+				window.speechSynthesis.speak(msg);
+			}
+			
+			var isMET = false;
+			
+			// takes a time like -1:364:23:23:59
+			function saytime() {
+				
+				//split time to array				
+				
+				var res = statusarray[0].split(":");
+				//0 = years
+				//1 = days
+				//2 = hours
+				//3 = minutes
+				//4 = seconds
+				thenewtime = "";
+				
+				if (Math.abs(res[0]) == 0) {
+					//do nothing
+				} else {
+					if (Math.abs(res[0]) == 1) {
+						thenewtime = Math.abs(res[0]) + " year,";
+					} else {
+						thenewtime = Math.abs(res[0]) + " years,";
+					}
+				}
+				
+				if (Math.abs(res[1]) == 0) {
+					//do nothing
+				} else {
+					if (Math.abs(res[1]) == 1) {						
+						thenewtime = thenewtime + Math.abs(res[1]) + " day,";
+					} else {
+						thenewtime = thenewtime + Math.abs(res[1]) + " days,";
+					}
+				}
+				
+				if (Math.abs(res[2]) == 0) {
+					//do nothing
+				} else {
+					if (Math.abs(res[2])== 1) {						
+						thenewtime = thenewtime + Math.abs(res[2]) + " hour,";
+					} else {
+						thenewtime = thenewtime + Math.abs(res[2]) + " hours,";
+					}
+				}
+				
+				if (Math.abs(res[3]) == 0) {
+					//do nothing
+				} else {
+					if (Math.abs(res[3]) ==1) {						
+						thenewtime = thenewtime + Math.abs(res[3]) + " minute,";
+					} else {
+						thenewtime = thenewtime + Math.abs(res[3]) + " minutes,";
+					}
+				}
+				
+				if (Math.abs(res[4]) == 0) {
+					//do nothing
+				} else {
+					if (Math.abs(res[4]) == 1) {						
+						thenewtime = thenewtime + Math.abs(res[4]) + " second,";
+					} else {
+						thenewtime = thenewtime + Math.abs(res[4]) + " seconds,";
+					}
+				}				
+				
+				if (res[0].charAt(0) == "-") {
+					//say tminus
+					isMET = false;
+					say2partphrase(tminus_pre,thenewtime);					
+				} else {
+					//say Mission elapsted time
+					isMET = true;
+					say2partphrase(mission_elapsed_time,thenewtime);			
+				}
+				
+			}
+			
+			
+			
+			function sayvelocity (){
+				var magicnumber = Math.floor((Math.random() * 2) + 1);				
+				if ( magicnumber > 1){
+					speakit (" Velocity "+ statusarray[6] + " meters per second.");	
+				}
+			}
+			
+			function saystatus () {
+			
+				var statusmsg = "";
+				
+				speakit (this_is[Math.floor((Math.random() * this_is.length) + 1)]);
+				saytime();
+				if (isMET){
+					speakit (good_telemetry_from + statusarray[5]);
+					speakit (resource_levels);
+					speakit (statusarray[1] + "% liquid fuel remaining,");
+					speakit (statusarray[2] + "% liquid oxygen,");
+					speakit ("monopropellent is reading "+ statusarray[3] + "%, ");
+					speakit (" the vessels electrical charge is at "+ statusarray[4] + "%.");
+					//now ramdonly mention velocity or not, just like they did during Apollo coverage!
+					sayvelocity(); 	
+				} else {
+					speakit (pre_launch_babble[Math.floor((Math.random() * pre_launch_babble.length) + 1)])
+				}
+				
+				
+			}
+			
+			
+
+			function saytargetstatus () {
+			
+				var statusmsg = "";
+				speakit (this_is[0]); //randomize this a bit
+				saytime();
+				var targettype = targetstatusarray[3];
+				if (targettype == "planet") {
+					speakit (targetstatusarray[5] + " is currently " + targetstatusarray[1] + " kilometers from " + targetstatusarray[2] );									
+				}
+				if (targettype == "station") {
+					speakit (targetstatusarray[5] + " is currently " + targetstatusarray[1] + " kilometers from " + targetstatusarray[2] +" space station");									
+				}
+				if (targettype == "base") {
+					speakit (targetstatusarray[5] + " is currently " + targetstatusarray[1] + " kilometers from " + targetstatusarray[2] +" base");									
+				}				
+				if (targettype == "ship") {
+					speakit (targetstatusarray[5] + " is currently " + targetstatusarray[1] + " kilometers from " + targetstatusarray[2] );									
+				}
+				if (targettype == "probe") {
+					speakit (targetstatusarray[5] + " is currently " + targetstatusarray[1] + " kilometers from the " + targetstatusarray[2] + " probe");									
+				}
+			}
+
+
+test_time = "-5";
+
+var timebetweenupdates = 60000*1;
+var timeleft = timebetweenupdates;
+
+var myVar = setInterval(myTimer, 1000);
+
+function stopTimer(){
+	clearInterval(myVar);	
+}
+
+function startTimer(){
+	myVar = setInterval(myTimer, 1000);	
+}
+
+
+function readAd(){
+	numCompanies = companyArray.length;
+	adcompany = companyArray[Math.floor((Math.random() * numCompanies - 1) + 1)];	
+	getAds(adcompany);
+	
+}
+
+function myTimer() {
+    var d = new Date();
+
+	document.getElementById("thetime").innerHTML = d.toLocaleTimeString();
+	timeleft = timeleft - 1000;
+	var date = new Date(null);
+	date.setSeconds(timeleft/1000); // specify value for SECONDS here
+	document.getElementById("xyz").innerHTML = date.toISOString().substr(11, 8);
+	
+	if (timeleft == 0)
+	{
+		timeleft = timebetweenupdates;		
+		saystatus();
+	} else {
+		
+		if (timeleft == 50001){
+			//time for add.			
+			//NOTE:will make this configurable.
+			readAd();		
+		}
+	}
+}
+	
+
+
+function getCompanies(){
+	var xmlhttp = new XMLHttpRequest();
+	var url = "./pao.cfg";
+
+	xmlhttp.onreadystatechange = function() {
+	if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {	
+		var myArr = xmlhttp.responseText;		
+		companyArray = myArr.split(",");
+		}
+	};
+	
+	xmlhttp.open("GET", url, true);
+	xmlhttp.send();
+}
+
+function getAds(adcompany){
+	var xmlhttp = new XMLHttpRequest();
+	var url = "./ads/"+adcompany+"/config.txt";
+
+	xmlhttp.onreadystatechange = function() {
+	if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {		
+		var myArr = xmlhttp.responseText;		
+		adNum = Math.floor((Math.random() * ads - 1) + 1);		
+		loadAd(adNum);		
+		}
+	};
+	
+	xmlhttp.open("GET", url, true);
+	xmlhttp.send();
+}	
+
+
+function loadAd(adNum){
+	var xmlhttp = new XMLHttpRequest();
+	var url = "./ads/"+adcompany+"/"+adNum+".txt";
+
+	xmlhttp.onreadystatechange = function() {
+	if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {		
+		var myArr = xmlhttp.responseText;		
+		document.getElementById("adpng").src = "./ads/"+adcompany+"/"+adNum+".png";		
+		document.getElementById("adpic").style.visibility ="visible";		
+		document.getElementById("videoPlayer").style="-webkit-filter:blur(10px);";						
+		speakitad(myArr);
+		
+		}
+	};
+	
+	xmlhttp.open("GET", url, true);
+	xmlhttp.send();
+}	
+
+// Load companies from config pao.cfg file.
+getCompanies();
+	
+</script>
+<style style="text/css">
+.marquee {
+
+padding-top: 40px;
+ height: 100px;	
+ overflow: hidden;
+ position: relative;
+ background: #00BFFF;
+ color: white;
+ border: 5px solid black;
+ opacity:.5;
+}
+.marquee p {
+opacity:1;
+font-size:80px;
+bottom:0;
+ position: absolute;
+ width: 100%;
+ height: 100%;
+ margin: 0;
+ line-height: 50px;
+ text-align: center;
+ /* Starting position */
+ -moz-transform:translateX(100%);
+ -webkit-transform:translateX(100%);	
+ transform:translateX(100%);
+ /* Apply animation to this element */	
+ -moz-animation: scroll-left 5s linear infinite;
+ -webkit-animation: scroll-left 10s linear infinite;
+ animation: scroll-left 20s linear infinite;
+}
+/* Move it (define the animation) */
+@-moz-keyframes scroll-left {
+ 0%   { -moz-transform: translateX(100%); }
+ 100% { -moz-transform: translateX(-100%); }
+}
+@-webkit-keyframes scroll-left {
+ 0%   { -webkit-transform: translateX(100%); }
+ 100% { -webkit-transform: translateX(-100%); }
+}
+@keyframes scroll-left {
+ 0%   { 
+ -moz-transform: translateX(100%); /* Browser bug fix */
+ -webkit-transform: translateX(100%); /* Browser bug fix */
+ transform: translateX(100%); 		
+ }
+ 100% { 
+ -moz-transform: translateX(-100%); /* Browser bug fix */
+ -webkit-transform: translateX(-100%); /* Browser bug fix */
+ transform: translateX(-100%); 
+ }
+}
+
+
+.fullscreen-bg__video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+	overflow: noscroll;
+	z-index:-1000;
+}
+
+</style>
+
+<div class="fullscreen-bg"> 
+    <video muted autoplay class="fullscreen-bg__video" id="videoPlayer" style="">
+        <source src="./video/1.mp4" type="video/mp4">
+    </video>
+</div>
+
+<div class="controls" style="height:90%;">
+	<textarea rows="1" cols="50" id="ta">
+	-0:1:1:1:1
+	</textarea>
+	<input onclick='alert(document.getElementById("ta").value);' type='button' value='echo' />
+	<input onclick='responsiveVoice.speak(document.getElementById("ta").value);' type='button' value='Play' />
+	<input onclick='window.speechSynthesis.speak(new SpeechSynthesisUtterance(document.getElementById("ta").value));' type='button' value='Google' />
+	<input onclick='speakit(document.getElementById("ta").value);' type='button' value='SpeakIt' />
+	<input onclick='say2partphrase(tminus_pre,"5");' type='button' value='PhraseTest' />
+	<input onclick='saytime();' type='button' value='SayTime Test' />
+	<input onclick='saystatus();' type='button' value='SayStatus Test' />
+	<input onclick='saytargetstatus();' type='button' value='SayTargetStatus Test' />
+	<input onclick='speakit (this_is[Math.floor((Math.random() * this_is.length) + 1)]);' type='button' value='RandomGreeting Test' />
+	<input onclick='sayvelocity();' type='button' value='Velocity Test' />
+	<input onclick='speakit (pre_launch_babble[Math.floor((Math.random() * pre_launch_babble.length) + 1)]);' type='button' value='Prelaunch Babble} Test' />
+	<input onclick='readAd();' type='button' value='Read Ad Test' />
+
+
+
+	
+	<br>
+	<span id="thetime" style="color:white;">0:00:00</span><br>
+	<span style="color:white;">PAO Update will broadcast in: <span id="xyz">XX</span><br>
+	<button onclick="stopTimer()">Stop time</button>
+	<button onclick="startTimer()">Start time</button><br>
+</div>
+<div id="adpic" style="
+	position:fixed;
+	top: 50%;
+	left: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	z-index:-1;
+	visibility:hidden
+	">
+<img id="adpng" width="800px"; src="./ads/JebsJunkyard/0.png">
+</div>
+	
+	
+<script>
+function changeVoice() {
+	
+    voice_id = document.getElementById("selectVoice").value;
+	console.log("voice is now set to: "+window.speechSynthesis.getVoices()[voice_id].name);
+    
+}
+</script>
+
+<select id="selectVoice" onchange="changeVoice()" >
+    <option>Choose a voice</option>
+</select>
+
+ <script>
+
+ 
+var select = document.getElementById("selectVoice"); 
+
+// wait on voices to be loaded before fetching list
+window.speechSynthesis.onvoiceschanged = function() {
+    var options = window.speechSynthesis.getVoices();
+    for (var i = 0; i < options.length; i++) {
+		var opt = options[i];
+		var el = document.createElement("option");
+		//console.log("adding: "+opt.name);
+		el.textContent = opt.name;
+		el.value = i;
+		select.appendChild(el);
+	}
+
+};
+
+
+
+var videoPlayer = document.getElementById('videoPlayer');
+videoPlayer.defaultPlaybackRate = 0.75;
+videoPlayer.onended = function(){
+	var maxMovies = 5;
+	var movienumber = Math.floor((Math.random() * maxMovies) + 1);
+	nextVideo = "./video/"+movienumber+".mp4";
+    videoPlayer.src = nextVideo;
+}
+
+   
+        
+			
+			
+</script>
+
+<div class="marquee">
+<p>Live from the Kerbal Space Center</p>
+</div>		 
+		
+</body>
+</html>
