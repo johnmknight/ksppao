@@ -1,9 +1,88 @@
+
 <html>
 <head>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<title> KSP PAO</title>
 
+<script   src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+
+
+<style type="text/css">
+
+
+centered {
+	vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;
+}
+
+div.paotitle {
+	vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:30px;	
+}
+
+offline {
+color; yellow;
+}
+
+body {
+background:url("ksc-transform.png") no-repeat center center fixed;
+ -webkit-background-size: cover;
+-moz-background-size: cover;
+-o-background-size: cover;
+background-size: cover;
+font-family: 'Oswald', sans-serif;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
+
+
+</style>
 </head>
 <body>
+
+
+<script src="./circleDonutChart.js"></script>
+<script src="./events.js"></script>
+
+<link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
+
 <script>
+
+
 
     //for general status update (random interval) we'll say somethign like:
 	// This is Apollo Control at 1 hour 51 minutes.
@@ -24,7 +103,7 @@
 	var this_is    				= ["This is Kerbal Control. ","Kerbal Control broadcasting from the Kerbal Space Center. ","Now for a mission update.","We are back live from the Kerbal Space Center with a mission update."];
 	var good_telemetry_from    	= ["We're getting good telemetry data from "];
 	var resource_levels	    	= ["Currenly we show the following for resource levels,  "];
-    
+
 	var voice_id				= 3; //default UK Female
 
     var companyArray = [];
@@ -33,6 +112,7 @@
 	var adNum = 0;
 	var adtext = "";
 	
+	var thenewtime = "";
 	
 	//status test data
     var statusarray = [
@@ -43,42 +123,23 @@
 	"100",			//4:	electrical charge percentage
 	"Munar 2",		//5:	vessel/mission name
 	"2300"		    //6:    vessel orbital velocity in m/s
-];
+	];
 	 var targetstatusarray = [
     "0:0:2:4:34", 	//0:	met
     "1,000,000",	//1:	distance to target
     "Kerbal X-a",			//2:	name of target
 	"probe",		//3:	type of target
 	"",				//4:	RESERVED
-	"Munar 2",		//5:	vessel/mission name
+	"Munar 2"		//5:	vessel/mission name
+	];
 	
+	var	motd = true;
 	
-
-];
-
-
-	function readTextFile(file)
-	{
-		var rawFile = new XMLHttpRequest();
-		rawFile.open("GET", file, false);
-		rawFile.onreadystatechange = function ()
-		{
-			if(rawFile.readyState === 4)
-			{
-				if(rawFile.status === 200 || rawFile.status == 0)
-				{
-					var allText = rawFile.responseText;
-					
-					alert(allText);
-					return (allText);
-				}
-			}
-		}
-		rawFile.send(null);
-	}
-
+	var options = [];
 	
-    		
+			function test(){
+                console.log(window.speechSynthesis.getVoices())
+            }
 			
 			function speakitad(text){
 				msg = new SpeechSynthesisUtterance(text);
@@ -88,7 +149,7 @@
 				msg.onend = function () {
 					//hide image after ad
 					document.getElementById("adpic").style.visibility ="hidden";					
-					document.getElementById("videoPlayer").style="-webkit-filter:blur(0px);";		
+					//document.getElementById("videoPlayer").style="-webkit-filter:blur(0px);";		
 				};
 				
 				window.speechSynthesis.speak(msg);
@@ -96,33 +157,41 @@
 			
 			function speakit(text){
 				msg = new SpeechSynthesisUtterance(text);
-				console.log("now speaking: "+ text);					
-				msg.voice = window.speechSynthesis.getVoices()[voice_id];
-				msg.lang = 'en-US';
-				
+				msg.voice = window.speechSynthesis.getVoices()[3];
 				window.speechSynthesis.speak(msg);
 			}
 			
 			function say2partphrase(array, value){
 				msg = new SpeechSynthesisUtterance(array[0] + value + array[1]);
-				msg.voice = window.speechSynthesis.getVoices()[voice_id];
-				msg.lang = 'en-US';
+				msg.voice = window.speechSynthesis.getVoices()[3];
 				window.speechSynthesis.speak(msg);
 			}
 			
 			var isMET = false;
 			
-			// takes a time like -1:364:23:23:59
-			function saytime() {
+			
+			function updateMET(){
+			    //console.log("raw time: "+statusarray[4]);
+				//split time to array
+				//alert(statusarray[0]);
+				res = [];
+				inseconds = statusarray[4];
+				years = parseInt(statusarray[0]/9203400);
+				if (years<0){
+					years = 0;
+				}
+				res[0] = years;
+				days = parseInt((inseconds - (years * 9203400) ) / 21600);
+				res[1] = days;
+				hours = parseInt((inseconds - (years * 9203400)- (days * 21600) ) / 3600);
+				res[2] = hours;
+				minutes = parseInt((inseconds - (years * 9203400)-(days * 21600)-(hours * 3600) ) / 60);
+				res[3] = minutes;
+				seconds = inseconds - (years * 9203400)-(days * 21600)-(hours * 3600)-(minutes*60) ;
+				res[4] = Math.round(seconds);
 				
-				//split time to array				
-				
-				var res = statusarray[0].split(":");
-				//0 = years
-				//1 = days
-				//2 = hours
-				//3 = minutes
-				//4 = seconds
+				//console.log(res[0]+":"+res[1]+":"+res[2]+":"+res[3]+":"+res[4]);
+			
 				thenewtime = "";
 				
 				if (Math.abs(res[0]) == 0) {
@@ -169,30 +238,45 @@
 					//do nothing
 				} else {
 					if (Math.abs(res[4]) == 1) {						
-						thenewtime = thenewtime + Math.abs(res[4]) + " second,";
+						thenewtime = thenewtime + Math.abs(res[4]) + " second";
 					} else {
-						thenewtime = thenewtime + Math.abs(res[4]) + " seconds,";
+						thenewtime = thenewtime + Math.abs(res[4]) + " seconds";
 					}
-				}				
+				}
+			}
+			
+			// takes a time like -1:364:23:23:59
+			function saytime() {
 				
-				if (res[0].charAt(0) == "-") {
+				res = [];
+				inseconds = statusarray[4];
+				years = parseInt(statusarray[4]/9203400);
+				res[0] = years;
+				//console.log("raw:"+statusarray[4]+" years: "+res[0]);
+				if (res[0] < 0) {
 					//say tminus
 					isMET = false;
 					say2partphrase(tminus_pre,thenewtime);					
 				} else {
 					//say Mission elapsted time
 					isMET = true;
-					say2partphrase(mission_elapsed_time,thenewtime);			
+					if (isEVA()){
+						speakit(crewname +" has been on e v a for "+thenewtime);
+					} else {
+						say2partphrase(mission_elapsed_time,thenewtime);
+					}								
 				}
-				
+				document.getElementById("demo").value = thenewtime;
+				//console.log("the time:"+thenewtime);	
 			}
 			
 			
 			
 			function sayvelocity (){
-				var magicnumber = Math.floor((Math.random() * 2) + 1);				
-				if ( magicnumber > 1){
-					speakit (" Velocity "+ statusarray[6] + " meters per second.");	
+				var magicnumber = Math.floor((Math.random() * 2) + 1);
+				console.log("velocity magic number:" +magicnumber);//alert(magicnumber);
+				if ( magicnumber >= 1){
+					speakit (" Orbital Velocity is "+ statusarray[6] + " meters per second.");	
 				}
 			}
 			
@@ -201,24 +285,87 @@
 				var statusmsg = "";
 				
 				speakit (this_is[Math.floor((Math.random() * this_is.length) + 1)]);
-				saytime();
-				if (isMET){
-					speakit (good_telemetry_from + statusarray[5]);
-					speakit (resource_levels);
-					speakit (statusarray[1] + "% liquid fuel remaining,");
-					speakit (statusarray[2] + "% liquid oxygen,");
-					speakit ("monopropellent is reading "+ statusarray[3] + "%, ");
-					speakit (" the vessels electrical charge is at "+ statusarray[4] + "%.");
-					//now ramdonly mention velocity or not, just like they did during Apollo coverage!
-					sayvelocity(); 	
-				} else {
-					speakit (pre_launch_babble[Math.floor((Math.random() * pre_launch_babble.length) + 1)])
-				}
+				
+				
+				 //lfc = Math.round(statusarray[0]);
+				 //o2c = Math.round(statusarray[1]);
+				 //mc  = Math.round(statusarray[2]);
+				 //ecc = Math.round(statusarray[3]);
+				 //lfm = Math.round(statusarray[6]);
+				 //o2m = Math.round(statusarray[7]);
+				 //mm  = Math.round(statusarray[8]);
+				 //ecm = Math.round(statusarray[9]);
+				 //xc	 = Math.round(statusarray[10]);
+				 //xm	 = Math.round(statusarray[11]);
+				 //orc = Math.round(statusarray[12]);
+				 //orm = Math.round(statusarray[13]);
+				
+				//if (isMET){
+					if (isEVA()){
+						//say something?
+						console.log("on eva with" + crewname);
+						speakit ("We are watching "+crewname + " performan an E V A");
+					} else {
+						saytime();
+						sayresources();
+						//now ramdonly mention velocity or not!
+						sayvelocity(); 
+						sayscience();					
+					}
+				//} else {
+				//	speakit (pre_launch_babble[Math.floor((Math.random() * pre_launch_babble.length) + 1)])
+				//}
 				
 				
 			}
 			
+			function sayscience(){
+					//sensortemp = 0;
+					//sensorpres = 0;
+					//sensorgrav = 0;
+					//sensoracc  = 0;
+					var magicnumber = Math.floor((Math.random() * 2) + 1);
+					if (magicnumber >= 2){
+						speakit ("Now for a science briefing:");
+						
+						if (sensortemp == 0){
+							speakit ("The two h.o.t. thermometer is currently offline");
+						} else {
+							speakit ("The two h.o.t. thermometer is reading "+sensortemp + " degrees");
+						}
+											
+						if (sensoracc == 0){
+							speakit ("The gravmax negative gravioli detector is offline.");
+						} else {
+							speakit ("The gravmax negative gravioli detector is reading "+sensoracc + " gravitational acceleration, near "+planet);
+						}
+						
+						if (sensorgrav == 0){
+							speakit ("The ship's Double-C Seismic Accelerometer is offline.");
+						} else {
+							speakit ("The ship's Double-C Seismic Accelerometer is reading "+sensorgrav + " g's");
+						}
+						
+						if (sensorpres == 0){
+							speakit ("The PresMat Barometer is offline");
+						} else {
+							if (sensorpres.includes("VACCUUM")){
+								speakit ("The PresMat Barometer is reading that a vacuum is present");
+							} else {
+								speakit ("The PresMat Barometer is reading "+sensorpres + " atmoshere's");
+							}
+						}
+					}
+			}
 			
+			function sayresources(){
+					speakit (good_telemetry_from + statusarray[5]);
+					speakit (resource_levels);
+					speakit (Math.round((lfc/lfm)*100) +"% of liquid fuel available. "+ lfc +" units remaining,");
+					speakit ("oxidizer is at "+Math.round((o2c/o2m)*100)+"% with "+ o2c+ " units in the tanks.");
+					speakit ("We are reading "+ Math.round((mc/mm)*100)+"% monopropellent.");
+					speakit (" with electrical charge at "+  Math.round((ecc/ecm)*100) +"%");
+			}
 
 			function saytargetstatus () {
 			
@@ -246,7 +393,7 @@
 
 test_time = "-5";
 
-var timebetweenupdates = 60000*1;
+var timebetweenupdates = 30000;
 var timeleft = timebetweenupdates;
 
 var myVar = setInterval(myTimer, 1000);
@@ -259,47 +406,220 @@ function startTimer(){
 	myVar = setInterval(myTimer, 1000);	
 }
 
-
-function readAd(){
-	numCompanies = companyArray.length;
-	adcompany = companyArray[Math.floor((Math.random() * numCompanies - 1) + 1)];	
-	getAds(adcompany);
-	
-}
-
 function myTimer() {
     var d = new Date();
-
-	document.getElementById("thetime").innerHTML = d.toLocaleTimeString();
+    	
+	//document.getElementById("thetime").innerHTML = d.toLocaleTimeString();
+	//document.getElementById("thetime").style.width = "10%";
 	timeleft = timeleft - 1000;
+	
+	getdata();
+	
 	var date = new Date(null);
 	date.setSeconds(timeleft/1000); // specify value for SECONDS here
-	document.getElementById("xyz").innerHTML = date.toISOString().substr(11, 8);
-	
+	document.getElementById("xyz").innerHTML = "Time until next briefing: "+ date.toISOString().substr(11, 8);
+	document.getElementById("xyz").style.width = "10%";
 	if (timeleft == 0)
 	{
-		timeleft = timebetweenupdates;		
+		timeleft = timebetweenupdates * 1000;
+		//speakit (this_is[Math.floor((Math.random() * this_is.length - 1) + 1)]);
 		saystatus();
-	} else {
-		
-		if (timeleft == 50001){
-			//time for add.			
-			//NOTE:will make this configurable.
-			readAd();		
-		}
 	}
+	updateMET();
+	document.getElementById("met").innerHTML = "MET:"+thenewtime;
+	document.getElementById("met").style.width = "15%";
+	
 }
 	
+//---------------------------------------------------------------------------------------------------------------------------------
 
 
-function getCompanies(){
+function setUpdateTime(num){
+	drop =  num;
+	timebetweenupdates = drop;
+	timeleft = timebetweenupdates * 1000;
+	console.log("update timer set to "+drop);
+}
+
+function setAdTime(num){
+	drop =  num;
+	
+	console.log("ad timer set to "+drop);
+}
+
+
+
+lfc  	= 0;
+o2c 	= 0;
+mc  	= 0;
+ecc 	= 0;
+lfm 	= 0;
+o2m 	= 0;
+mm  	= 0;
+ecm 	= 0;
+lfp     = 0;
+o2p     = 0;
+mp      = 0;
+ecp     = 0;
+xc      = 0;
+xm      = 0;
+xp      = 0;
+orc     = 0;
+orm     = 0;
+orp     = 0;
+
+vessel  = "";
+shipname = "";
+crewname = "";
+previtem = "";
+
+planet = "";
+
+sensortemp = 0;
+//sensorpres = 0;
+//sensorgrav = 0;
+//sensoracc  = 0;
+
+
+function isEVA(){
+	if (statusarray[5].includes("kerbalEVA")){				
+		return true;
+	} else {
+		return false;	
+	}
+}
+
+function getshipname(){
+	if (statusarray[5].includes("(")){
+		//ok we have a named ship. We'll split into vessel type and Ship name
+		tmp = statusarray[5];
+		//check for EVA!
+		if (isEVA()){
+			crewname = tmp.substr(tmp.indexOf("(")+1,tmp.length);
+			crewname = crewname.substr(0,crewname.length-1); 
+		} else {
+			vessel = tmp.substr(0,tmp.indexOf("(")-1);						
+			shipname = tmp.substr(tmp.indexOf("(")+1,tmp.length);
+			shipname = shipname.substr(0,shipname.length-1);
+			crewname = "";
+		}
+	} else {
+		vessel = statusarray[5];
+		crewname = "";
+	}
+	//console.log(vessel);
+}
+
+function topercent(number1,number2){
+ if (number1 > 0){
+	 per = number1 / number2;
+	 per = Math.round(per*100) ;
+ } else {
+	per = 0;
+ }
+ return (per);
+}
+var image = new Image();
+
+image.onload = function() {
+    // image exists and is loaded
+	document.getElementById("liveimage").src = "/telemachus/cameras/TelemachusFlightCamera?time=" + new Date().getTime();	
+}
+image.onerror = function() {
+    // image did not load
+
+    //var err = new Image();
+    //err.src = '/error.png';
+	document.getElementById("liveimage").src = "./imags/static.gif";
+    //document.body.appendChild(err);
+}
+
+image.src = "/telemachus/cameras/TelemachusFlightCamera?time=" + new Date().getTime();
+
+function imageTimer() {
+    src = "/telemachus/cameras/TelemachusFlightCamera?time=" + new Date().getTime();
+	image.src = src;
+	getdata();
+	
+}
+var myVar = setInterval(imageTimer, 1000);
+
+function drawResourceDonut(divname,res){
+	document.getElementById(divname).innerHTML = "";
+	if (res >=60){
+		drawgreencirlce(divname,res);
+		return;
+	}
+	if (res < 10 ){
+		drawredcirlce(divname,res);
+		return;
+	}
+	if (res < 60 ){
+		drawyellowcirlce(divname,res);
+		return;
+	}
+	
+	
+
+}
+
+function drawredcirlce(divname,res){
+	var circle = new circleDonutChart(divname);
+					circle.draw({
+					end:res,
+					start:res,
+					maxValue:100,
+					titlePosition:"outer-top",
+					titleText:"",
+					outerCircleColor:"red",
+					innerCircleColor:'#909081',
+					size:75,
+					titleColor:'white'
+					});
+}
+
+function drawgreencirlce(divname,res){
+	var circle = new circleDonutChart(divname);
+					circle.draw({
+					end:res,
+					start:res,
+					maxValue:100,
+					titlePosition:"outer-top",
+					titleText:"",
+					outerCircleColor:"green",
+					innerCircleColor:'#909081',
+					size:75,
+					titleColor:'white'
+					});
+}
+
+function drawyellowcirlce(divname,res){
+	var circle = new circleDonutChart(divname);
+					circle.draw({
+					end:res,
+					start:res,
+					maxValue:100,
+					titlePosition:"outer-top",
+					titleText:"",
+					outerCircleColor:"yellow",
+					innerCircleColor:'#909081',
+					size:75,
+					titleColor:'white'
+					});
+}
+
+function loadAd(adNum){
 	var xmlhttp = new XMLHttpRequest();
-	var url = "./pao.cfg";
+	var url = "./ads/"+adcompany+"/"+adNum+".txt";
 
 	xmlhttp.onreadystatechange = function() {
-	if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {	
+	if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {		
 		var myArr = xmlhttp.responseText;		
-		companyArray = myArr.split(",");
+		document.getElementById("adpng").src = "./ads/"+adcompany+"/"+adNum+".png";		
+		document.getElementById("adpic").style.visibility ="visible";		
+		//document.getElementById("videoPlayer").style="-webkit-filter:blur(10px);";						
+		speakitad(myArr);
+		
 		}
 	};
 	
@@ -323,193 +643,506 @@ function getAds(adcompany){
 	xmlhttp.send();
 }	
 
-
-function loadAd(adNum){
+function getCompanies(){
 	var xmlhttp = new XMLHttpRequest();
-	var url = "./ads/"+adcompany+"/"+adNum+".txt";
+	var url = "./pao.cfg";
 
 	xmlhttp.onreadystatechange = function() {
-	if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {		
+	if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {	
 		var myArr = xmlhttp.responseText;		
-		document.getElementById("adpng").src = "./ads/"+adcompany+"/"+adNum+".png";		
-		document.getElementById("adpic").style.visibility ="visible";		
-		document.getElementById("videoPlayer").style="-webkit-filter:blur(10px);";						
-		speakitad(myArr);
-		
+		companyArray = myArr.split(",");
 		}
 	};
 	
 	xmlhttp.open("GET", url, true);
 	xmlhttp.send();
-}	
+}
 
-// Load companies from config pao.cfg file.
+
+function readAd(){
+	numCompanies = companyArray.length;
+	adcompany = companyArray[Math.floor((Math.random() * numCompanies - 1) + 1)];	
+	getAds(adcompany);
+	
+}
+
+function getdata(){
+		//get data from telemachus
+		//http://<ip-address>:<port>/telemachus/datalink?a=v.altitude&b=v.missionTime
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (xhttp.readyState == 4 && xhttp.status == 200) {
+			   // Action to be performed when the document is read;
+			   //speakit("Vessel data is "+  xhttp.responseText);
+			   
+			   //document.getElementById("ta").value = xhttp.responseText;
+			   var parsed = JSON.parse(xhttp.responseText);
+			   //console.log(xhttp.responseText);
+				
+			   statusarray = [];
+			   for(var x in parsed){
+				  
+				  if ( (x == 'p') || (x == 'q') || (x == 'r') || (x == 's')){
+					//console.log("processing:"+x+":"+parsed[x][1]);
+					statusarray.push(parsed[x][1]);
+				  } else {
+					statusarray.push(parsed[x]);
+					}
+				}
+				
+				//will expand to include: xenon and ore (others...)
+				 lfc = Math.round(statusarray[0]);
+				 o2c = Math.round(statusarray[1]);
+				 mc  = Math.round(statusarray[2]);
+				 ecc = Math.round(statusarray[3]);
+				 
+				 vessel = 		   statusarray[5];
+				 
+				 lfm = Math.round(statusarray[6]);
+				 o2m = Math.round(statusarray[7]);
+				 mm  = Math.round(statusarray[8]);
+				 ecm = Math.round(statusarray[9]);
+				 xc	 = Math.round(statusarray[10]);
+				 xm	 = Math.round(statusarray[11]);
+				 orc = Math.round(statusarray[12]);
+				 orm = Math.round(statusarray[13]);
+				 
+				 planet = statusarray[14];
+				 
+				 sensortemp = statusarray[15];
+				 sensorpres = statusarray[16];
+				 sensorgrav = statusarray[17];
+				 sensoracc  = statusarray[18];
+				 				 
+				 
+				 lfp = topercent(lfc,lfm);
+				 o2p = topercent(o2c,o2m);
+				 mp  = topercent(mc,mm);
+				 ecp = topercent(ecc,ecm);
+				 xp  = topercent(xc,xm);
+				 op  = topercent(orc,orm);
+				 br = "<Br>";
+				
+				
+				
+				
+				getshipname();
+				
+				if (sensortemp == 0){
+					document.getElementById("temp").innerHTML = "OFFLINE";
+					document.getElementById("temp").style.color = "yellow";
+				} else {				
+					document.getElementById("temp").innerHTML = sensortemp;
+					document.getElementById("temp").style.color = "green";
+				}
+				if (sensorpres == 0){
+					document.getElementById("pres").innerHTML = "OFFLINE";
+					document.getElementById("pres").style.color = "yellow";
+				} else {				
+					document.getElementById("pres").innerHTML = sensorpres;
+					document.getElementById("pres").style.color = "green";
+				}
+				if (sensorgrav == 0){
+					document.getElementById("grav").innerHTML = "OFFLINE";
+					document.getElementById("grav").style.color = "yellow";
+				} else {				
+					document.getElementById("grav").innerHTML = sensorgrav;
+					document.getElementById("grav").style.color = "green";
+				}
+				if (sensoracc == 0){
+					document.getElementById("acc").innerHTML = "OFFLINE";
+					document.getElementById("acc").style.color = "yellow";
+				} else {				
+					document.getElementById("acc").innerHTML = sensoracc;
+					document.getElementById("acc").style.color = "green";
+				}
+				
+				
+				if (isEVA()){
+					document.getElementById("shipresoucesa").style.visibility = "hidden";
+				    document.getElementById("shipresouces").innerHTML = crewname + " on EVA";
+					//hide table
+					document.getElementById("table").style.visibility = "hidden";
+					//show eva
+					// which eva image?
+					evaprime = "prime.png";
+					evaregular = "regular.png";
+					evaval     = "val.png";
+					if (crewname.includes("Jeb")||crewname.includes("Bill")||crewname.includes("Bob") ){
+						evasrc = "./images/" + evaprime;
+					} else {
+						if (crewname.includes("Jeb")||crewname.includes("Bill")||crewname.includes("Bob") ){
+							evasrc = "./images/" + evaval;
+						} else {
+							evasrc = "./images/" + evaregular;
+						}
+					}
+					document.getElementById("shipresouces").style ="vertical-align: middle;text-align: center;margin-left: auto;margin-right: auto;align: center;font-size:20px;height:100%;background-position:center center;background-repeat: no-repeat;background-image: url('"+evasrc+"');background-size:200px 200px;"
+				} else{
+					document.getElementById("shipresouces").style ="vertical-align: middle;text-align: center;margin-left: auto;margin-right: auto;align: center;font-size:20px;background-position:center center;background-repeat: no-repeat;background-image: null;background-size:200px 200px;"
+					document.getElementById("shipresoucesa").style.visibility = "visible";				
+					if (shipname!=""){
+						document.getElementById("shipresouces").class = "div.paotitle";
+						document.getElementById("shipresouces").innerHTML = shipname + "<Br>" 
+					} else {
+					document.getElementById("shipresouces").class = "div.paotitle";
+						document.getElementById("shipresouces").innerHTML = vessel + "<Br>"
+					}
+					//show table
+					document.getElementById("table").style.visibility = "visible";
+					//hide eva
+					//document.getElementById("shipresouces").style = "vertical-align: middle;text-align: center;margin-left: auto;margin-right: auto;align: center;font-size:16px;";
+					
+					
+					drawResourceDonut('lf',lfp);
+					drawResourceDonut('o2',o2p);
+					drawResourceDonut('m',mp);
+					drawResourceDonut('x',xp);
+					drawResourceDonut('o',orp);
+					drawResourceDonut('e',ecp);
+					
+				}
+				if(planet!=""){
+					//console.log(planet);					
+					document.getElementById("flag").style.backgroundImage = "url('"+"./images/"+planet+".png"+"')";					
+				}
+				
+				//document.getElementById("raw").innerHTML = "lf"+lfc+br+"o2"+o2c+br+"mc"+mc+br+"ecc"+ecc+br+"lfm"+lfm+br+"o2m"+o2m+br+"mm"+mm+br+"ecm"+ecm+br+"xc"+xc+br+"xm"+xm+br+"orc"+orc+br+"orm"+orm+br+"LiquidFuel: "+lfp+br+"Oxidizer: "+o2p+br+"MonoPropellant: "+mp+br+"ElectricCharge: "+ecp+br+"Xenon: "+xp+br+"Ore: "+op;
+				//document.getElementById("ship").innerHTML = "vessel: "+vessel+br+"shipname: "+shipname+br+"crewname: "+ crewname+br+planet;
+				
+				
+			
+				
+			}
+		};
+		//statusarray
+		// "65",			//1:	liquid fuel current
+		//"65",				//2:	liquid oxygen current
+		//"98",				//3:	monopropellent current
+		//"100",			//4:	electrical charge current
+		//"Munar 2",		//5:	vessel/mission name
+		//"2300"		    //6:    vessel orbital velocity in m/s
+		//                  //7:    lf max
+		//					//8:	o2 max
+		//					//9:	m  max
+		//				  // 10:	ec max
+		
+		//targetstatusarray
+		//"0:0:2:4:34", 	//0:	met
+		//"1,000,000",		//1:	distance to target
+		//"Kerbal X-a",		//2:	name of target
+		//"Kerbal X-a",		//2:	name of target
+		//"probe",			//3:	type of target
+		//"",				//4:	RESERVED
+		//"Munar 2",		//5:	vessel/mission name
+		
+		xhttp.open("GET", "/telemachus/datalink?a=r.resource[LiquidFuel]&b=r.resource[Oxidizer]&c=r.resource[MonoPropellant]&d=r.resource[ElectricCharge]&e=v.missionTime&f=v.name&g=v.orbitalVelocity&g=r.resourceMax[LiquidFuel]&h=r.resourceMax[Oxidizer]&i=r.resourceMax[MonoPropellant]&j=r.resourceMax[ElectricCharge]&k=r.resource[XenonGas]&l=r.resourceMax[XenonGas]&m=r.resource[Ore]&n=r.resourceMax[Ore]&o=v.body&p=s.sensor.temp&q=s.sensor.pres&r=s.sensor.grav&s=s.sensor.acc", true);
+		xhttp.send();
+		
+		
+		
+	}
+
+
 getCompanies();
-	
+
+
+
+
 </script>
-<style style="text/css">
-.marquee {
-
-padding-top: 40px;
- height: 100px;	
- overflow: hidden;
- position: relative;
- background: #00BFFF;
- color: white;
- border: 5px solid black;
- opacity:.5;
-}
-.marquee p {
-opacity:1;
-font-size:80px;
-bottom:0;
- position: absolute;
- width: 100%;
- height: 100%;
- margin: 0;
- line-height: 50px;
- text-align: center;
- /* Starting position */
- -moz-transform:translateX(100%);
- -webkit-transform:translateX(100%);	
- transform:translateX(100%);
- /* Apply animation to this element */	
- -moz-animation: scroll-left 5s linear infinite;
- -webkit-animation: scroll-left 10s linear infinite;
- animation: scroll-left 20s linear infinite;
-}
-/* Move it (define the animation) */
-@-moz-keyframes scroll-left {
- 0%   { -moz-transform: translateX(100%); }
- 100% { -moz-transform: translateX(-100%); }
-}
-@-webkit-keyframes scroll-left {
- 0%   { -webkit-transform: translateX(100%); }
- 100% { -webkit-transform: translateX(-100%); }
-}
-@keyframes scroll-left {
- 0%   { 
- -moz-transform: translateX(100%); /* Browser bug fix */
- -webkit-transform: translateX(100%); /* Browser bug fix */
- transform: translateX(100%); 		
- }
- 100% { 
- -moz-transform: translateX(-100%); /* Browser bug fix */
- -webkit-transform: translateX(-100%); /* Browser bug fix */
- transform: translateX(-100%); 
- }
-}
 
 
-.fullscreen-bg__video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-	overflow: noscroll;
-	z-index:-1000;
-}
-
-</style>
-
-<div class="fullscreen-bg"> 
-    <video muted autoplay class="fullscreen-bg__video" id="videoPlayer" style="">
-        <source src="./video/1.mp4" type="video/mp4">
-    </video>
-</div>
-
-<div class="controls" style="height:90%;">
-	<textarea rows="1" cols="50" id="ta">
-	-0:1:1:1:1
-	</textarea>
-	<input onclick='alert(document.getElementById("ta").value);' type='button' value='echo' />
-	<input onclick='responsiveVoice.speak(document.getElementById("ta").value);' type='button' value='Play' />
-	<input onclick='window.speechSynthesis.speak(new SpeechSynthesisUtterance(document.getElementById("ta").value));' type='button' value='Google' />
-	<input onclick='speakit(document.getElementById("ta").value);' type='button' value='SpeakIt' />
-	<input onclick='say2partphrase(tminus_pre,"5");' type='button' value='PhraseTest' />
-	<input onclick='saytime();' type='button' value='SayTime Test' />
-	<input onclick='saystatus();' type='button' value='SayStatus Test' />
-	<input onclick='saytargetstatus();' type='button' value='SayTargetStatus Test' />
-	<input onclick='speakit (this_is[Math.floor((Math.random() * this_is.length) + 1)]);' type='button' value='RandomGreeting Test' />
-	<input onclick='sayvelocity();' type='button' value='Velocity Test' />
-	<input onclick='speakit (pre_launch_babble[Math.floor((Math.random() * pre_launch_babble.length) + 1)]);' type='button' value='Prelaunch Babble} Test' />
-	<input onclick='readAd();' type='button' value='Read Ad Test' />
 
 
+<div id="wrapper">
+<h2 style="color:white;"></h2>
+<!--div style="position:absolute;background-color:white;left:7%;width:77.2%;height:43%;top:0;"></div-->
+<img style="position:absolute;left:7%;top:1%;height:43%;z-index:99998;border:1px solid #021a40;background-color:#ff0;transform: skew(0deg,-3deg)" id="liveimage" src="./images/static.gif"></image>
+<img style="position:absolute;left:7%;top:0%;height:43%;z-index:99999;border:1px solid #021a40;background-color:#ff0;opacity:0.05;width:390px;transform: skew(0deg,-3deg)" id="digital" src="./images/digital.gif"></image>
+<div style="position:absolute;left:28%;top:0%;height:43%;width:20%;color:white;z-index:99999;background-color:blue;background-position:center center;background-repeat: no-repeat;
+   background-size:200px 200px; filter: blur(5px);" id="raw">
+
+	<div id="" class="paotitle">Science Data</div>
 
 	
-	<br>
-	<span id="thetime" style="color:white;">0:00:00</span><br>
-	<span style="color:white;">PAO Update will broadcast in: <span id="xyz">XX</span><br>
-	<button onclick="stopTimer()">Stop time</button>
-	<button onclick="startTimer()">Start time</button><br>
+	<table style="color:white;font-size:14px;align:center;width:100%;height:60%;">
+	<tr style="color:white;font-size:14px;align:center;" ><td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:20px;">Temperature</td>
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:20px;">Pressure</td></tr>
+	<tr  style="color:white;font-size:14px;align:center"><td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:20px;" id="temp"></td><td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:20px;" id="pres"></td></tr>
+	<tr>
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:20px;">Gravity</td>
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:20px;">Acceleration</td></tr>
+	<tr><td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:20px;" id="grav"></td><td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;font-size:20px;" id="acc"></td></tr>
+	</table>
+	
 </div>
+<div style="position:absolute;left:49%;top:0%;height:43%;width:20%;color:white;z-index:99999;background-color:blue;" id="stats">
+
+
+
+
+
+<div class="paotitle" id="shipresouces"></div>
+<div class="paotitle" id="shipresoucesa">Ship Resources</div>
+	<table id="table" width=100% height=80%>
+	<tr style="color:white;font-size:14px;align:center">
+	
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;">LiquidFuel</td>
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;">Oxidizer</td>
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;">MonoPropellant</td>
+	
+	</tr>
+	<tr>
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;"><div style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;" id="lf"></div></td>
+	
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;"><div style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;" id="o2"></div></td>
+	
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;"><div style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;" id="m"></div></td>
+	
+	</tr>
+	
+	<tr style="color:white;font-size:14px;align:center">
+	
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;">XenonGas</td>
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;">Ore</td>
+	
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;">ElectricCharge</td>
+	
+	</tr>
+	<tr>
+	
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;"><div style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;" id="x"></div></td>
+	
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;"><div style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;" id="o"></div></td>
+	
+	<td style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;"><div style="vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    align: center;" id="e"></div></td>
+	</tr>
+		
+	</table>
+	
+	
+</div>
+<div style="position:absolute;left:70%;top:1%;height:43%;width:20%;z-index:99999;background-color:blue;background-position:center center;background-repeat: no-repeat;
+    background-size:200px 200px;background-image: url('flag.png');transform: skew(0deg,2deg)" id="flag" </div>
+</div>
+
+<!-- motd on monitor -->
+<div style="position:absolute;left:45%;top:66%;height:156px;width:247px;color:white;z-index:99999;background-color:black;padding: 5px 5px 5px 5px; transform: rotate(-1.5deg);" id="lcd"></div>
+
+<nav class="navbar navbar-default footer">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">KSP PAO</a>
+    </div>
+
+
+ <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse dropup" >
+      <ul class="nav navbar-nav id="updatelist">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Mission Update Setting <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href= "#" onclick="setUpdateTime(60);">1 minute</a></li>
+				<li><a href= "#" onclick="setUpdateTime(60*5);">5 minutes</a></li>
+				<li><a href= "#" onclick="setUpdateTime(60*10);">10 minutes</a></li>
+				<li><a href= "#" onclick="setUpdateTime(60*15);">15 minutes</a></li>
+				<li><a href= "#" onclick="setUpdateTime(60*30);">30 minutes</a></li>
+				<li><a href= "#" onclick="setUpdateTime(60*45);">45 minutes</a></li>
+				<li><a href= "#" onclick="setUpdateTime(60*60);">1 hour</a></li>				
+				<li role="separator" class="divider"></li>
+				<li><a href="#" onclick="setUpdateTime(null);">Turn Updates Off</a></li>
+          </ul>
+        </li>
+      </ul>
+	  
+
+      
+	  <button type="button" class="btn btn-default navbar-btn" onclick="saystatus();">Mission Report</button>
+	  <button type="button" class="btn btn-default navbar-btn" onclick="sayresources();">Resources</button>
+	  <button type="button" class="btn btn-default navbar-btn" onclick="saytime();">MET</button>
+	  <button type="button" class="btn btn-default navbar-btn" onclick="sayscience();">Science</button>
+	  <button type="button" class="btn btn-default navbar-btn" onclick="readAd();">Advertisement</button>
+	  <button type="button" class="btn btn-default navbar-btn" onclick="speakit(getEvent());">Today In History</button>
+	  
+	  <p id="thetime" class="navbar-text"></p>
+	  <p id="xyz" class="navbar-text"></p>
+	  <p id="demo" class="navbar-text"></p>
+	  <p id="met" class="navbar-text"></p>
+	  
+	</div><!-- /.navbar-collapse -->
+
+	
+	
+	
+</div>
+
+</nav>
+<script>
+
+window.readyHandlers = [];
+window.ready = function ready(handler) {
+  window.readyHandlers.push(handler);
+  handleState();
+};
+
+window.handleState = function handleState () {
+  if (['interactive', 'complete'].indexOf(document.readyState) > -1) {
+    while(window.readyHandlers.length > 0) {
+      (window.readyHandlers.shift())();
+    }
+  }
+};
+
+document.onreadystatechange = window.handleState;
+
+window.speechSynthesis.onvoiceschanged = function() {
+    window.speechSynthesis.getVoices();
+	if (motd) {
+		speakit(getEvent());
+		document.getElementById("lcd").innerHTML = getEvent();
+		motd = false;
+	} else {
+		// do nothing
+	}
+		
+};
+
+ready(function () {
+    //setTimeout(function(){ test(); }, 5000);
+
+});
+
+
+
+
+</script>
+
+
 <div id="adpic" style="
 	position:fixed;
 	top: 50%;
 	left: 50%;
 	-webkit-transform: translate(-50%, -50%);
 	transform: translate(-50%, -50%);
-	z-index:-1;
+	z-index:999999999999999999999999999999;
 	visibility:hidden
 	">
-<img id="adpng" width="800px"; src="./ads/JebsJunkyard/0.png">
+<img id="adpng" width="800px"; src="">
 </div>
-	
-	
-<script>
-function changeVoice() {
-	
-    voice_id = document.getElementById("selectVoice").value;
-	console.log("voice is now set to: "+window.speechSynthesis.getVoices()[voice_id].name);
-    
-}
-</script>
 
-<select id="selectVoice" onchange="changeVoice()" >
-    <option>Choose a voice</option>
-</select>
-
- <script>
-
- 
-var select = document.getElementById("selectVoice"); 
-
-// wait on voices to be loaded before fetching list
-window.speechSynthesis.onvoiceschanged = function() {
-    var options = window.speechSynthesis.getVoices();
-    for (var i = 0; i < options.length; i++) {
-		var opt = options[i];
-		var el = document.createElement("option");
-		//console.log("adding: "+opt.name);
-		el.textContent = opt.name;
-		el.value = i;
-		select.appendChild(el);
-	}
-
-};
-
-
-
-var videoPlayer = document.getElementById('videoPlayer');
-videoPlayer.defaultPlaybackRate = 0.75;
-videoPlayer.onended = function(){
-	var maxMovies = 5;
-	var movienumber = Math.floor((Math.random() * maxMovies) + 1);
-	nextVideo = "./video/"+movienumber+".mp4";
-    videoPlayer.src = nextVideo;
-}
-
-   
-        
-			
-			
-</script>
-
-<div class="marquee">
-<p>Live from the Kerbal Space Center</p>
-</div>		 
-		
 </body>
 </html>
+
+
+
