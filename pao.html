@@ -361,10 +361,18 @@ body {
 			function sayresources(){
 					speakit (good_telemetry_from + statusarray[5]);
 					speakit (resource_levels);
-					speakit (Math.round((lfc/lfm)*100) +"% of liquid fuel available. "+ lfc +" units remaining,");
-					speakit ("oxidizer is at "+Math.round((o2c/o2m)*100)+"% with "+ o2c+ " units in the tanks.");
-					speakit ("We are reading "+ Math.round((mc/mm)*100)+"% monopropellent.");
-					speakit (" with electrical charge at "+  Math.round((ecc/ecm)*100) +"%");
+					if (lfc != -1) {
+						speakit (Math.round((lfc/lfm)*100) +"% of liquid fuel available. "+ lfc +" units remaining,");
+					}
+					if (o2c != -1) {
+						speakit ("oxidizer is at "+Math.round((o2c/o2m)*100)+"% with "+ o2c+ " units in the tanks.");
+					}
+					if (mc != -1) {
+						speakit ("We are reading "+ Math.round((mc/mm)*100)+"% monopropellent.");
+					}
+					if (ecc != -1) {
+						speakit (" with electrical charge at "+  Math.round((ecc/ecm)*100) +"%");
+					}
 			}
 
 			function saytargetstatus () {
